@@ -28,7 +28,6 @@ void Character::setDefence(int value)
 		defence = value;
 }
 
-
 void Character::setHealthPoints(int value)
 {
 	if (value < baseHealthPoints)
@@ -231,5 +230,3 @@ std::ostream& operator<<(std::ostream& output, const Character& character)
 
 	return output;
 }
-
-
