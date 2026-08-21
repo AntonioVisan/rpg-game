@@ -1,102 +1,155 @@
 #include "Game.h"
-#include <fstream>
+
 #include <algorithm>
-const int Game::enemiesCount = 15;
+#include <fstream>
+#include <iostream>
+#include <stdexcept>
+
 Game* Game::game = nullptr;
 
 Game* Game::getGame()
 {
-    if (game == nullptr)
-        game = new Game();
-    return game;
+	if (game == nullptr)
+	{
+		game = new Game();
+	}
+
+	return game;
 }
 
 void Game::Initialize()
 {
-    std::ifstream file("Data/input.txt");
-    if (!file)
-    {
-        throw "Eroare citire fisier";
-    }
-    file >> mainCharacter;
-    enemies = new Character[enemiesCount];
-    if (!enemies)
-    {
-        file.close();
-        throw "Eroare alocare vectori de inamici";
-    }
-    for (int i = 0; i < enemiesCount; i++)
-        file >> enemies[i];
-    file.close();
-}
+	std::ifstream file("Data/input.txt");
 
-void Game::CheckIfEnemyDead(int &i, int &defeatedEnemies)
-{
-    if (enemies[i].isDead())
-    {
-        std::cout <<"Inamicul "<<enemies[i].getName() << " a murit." << std::endl;
-        i++;
-        std::cout << "Ai batut " << i << " din " << enemiesCount << " inamici." << std::endl;
-        defeatedEnemies++;
-    }
+	if (!file)
+	{
+		throw std::runtime_error("Failed to open input file.");
+	}
+
+	file >> mainCharacter;
+
+	enemies = std::make_unique<Character[]>(enemiesCount);
+
+	for (int i = 0; i < enemiesCount; ++i)
+	{
+		file >> enemies[i];
+	}
 }
 
 void Game::Run()
 {
-    int i = 0,defeatedEnemies=0;
-    std::string option;
-    std::sort(enemies, enemies + enemiesCount);
-    std::cout << mainCharacter;
-    while (mainCharacter.isAlive() && i < enemiesCount)
-    {
-        //std::cout << enemies[i];
-        std::cout << "Alege o optiune: " << std::endl;
-        std::cout << "Optiunea 1 - Ataca inamicul curent."<<std::endl;
-        std::cout << "Optiunea 2 - Consuma o potiune pentru a te vindeca." << std::endl;
-        std::cin >> option;
-        if (option == "1")
-        {
-            mainCharacter.Attack(enemies[i]);
-            std::cout << "Dupa atac viata inamicului " << enemies[i].getName() << " este de : " << enemies[i].getRemainingHealthPoints() << std::endl;
-            CheckIfEnemyDead(i, defeatedEnemies);
-            if (defeatedEnemies == 2)
-            {
-                defeatedEnemies = 0;
-                std::cout << "Level up: " << std::endl;
-                mainCharacter.LvlUp();
-                std::cout << mainCharacter;
-                if (i < enemiesCount)
-                {
-                    mainCharacter.Attack(enemies[i]);
-                    std::cout << "Dupa atac viata ramasa inamicului " << enemies[i].getName() << " este  : " << enemies[i].getRemainingHealthPoints() << std::endl;
-                    CheckIfEnemyDead(i, defeatedEnemies);
-                }
-            }
-            if (i < enemiesCount)
-            {
-                enemies[i].Attack(mainCharacter);
-                std::cout << "Dupa atacul inamicului " << enemies[i].getName() << ",viata ramasa caracterului principal este : " << mainCharacter.getRemainingHealthPoints() << std::endl;
-            }
-        }
-        else if (option == "2")
-        {
-            mainCharacter.Heal();
-            std::cout << "Dupa heal: " << std::endl;
-            std::cout << mainCharacter;
-            enemies[i].Attack(mainCharacter);
-            std::cout << "Dupa atacul inamicului " << enemies[i].getName() << ",viata ramasa caracterului principal este : " << mainCharacter.getRemainingHealthPoints() << std::endl;
-        }
-        else std::cout << "Optiune gresita. Mai introdu o data." << std::endl;
-        std::cout << std::endl;
-    }
-    if (mainCharacter.isDead())
-        std::cout << "Ai pierdut. Jocul s-a terminat." << std::endl;
-    else std::cout << "Ai castigat, ai batut toti inamicii. GG!" << std::endl;
-}
+	int currentEnemy = 0;
+	int enemiesSinceLastLevelUp = 0;
+	std::string option;
 
-Game::~Game()
-{
-    delete[] enemies;
-    enemies = nullptr;
-    game = nullptr;
+	std::sort(
+		enemies.get(),
+		enemies.get() + enemiesCount
+	);
+
+	std::cout << mainCharacter;
+
+	while (mainCharacter.isAlive() && currentEnemy < enemiesCount)
+	{
+		std::cout << "Choose an option:" << std::endl;
+		std::cout << "1 - Attack the current enemy." << std::endl;
+		std::cout << "2 - Use a health potion." << std::endl;
+		std::cout << "Option: ";
+
+		std::cin >> option;
+
+		if (option == "1")
+		{
+			mainCharacter.Attack(enemies[currentEnemy]);
+
+			std::cout
+				<< "After your attack, "
+				<< enemies[currentEnemy].getName()
+				<< " has "
+				<< enemies[currentEnemy].getRemainingHealthPoints()
+				<< " health points remaining."
+				<< std::endl;
+
+			if (enemies[currentEnemy].isDead())
+			{
+				std::cout
+					<< "Enemy "
+					<< enemies[currentEnemy].getName()
+					<< " has been defeated."
+					<< std::endl;
+
+				++currentEnemy;
+				++enemiesSinceLastLevelUp;
+
+				std::cout
+					<< "You have defeated "
+					<< currentEnemy
+					<< " out of "
+					<< enemiesCount
+					<< " enemies."
+					<< std::endl;
+
+				if (enemiesSinceLastLevelUp == 2)
+				{
+					enemiesSinceLastLevelUp = 0;
+
+					std::cout << "Level up!" << std::endl;
+
+					++mainCharacter;
+
+					std::cout << mainCharacter;
+
+					continue;
+				}
+			}
+
+			if (currentEnemy < enemiesCount)
+			{
+				enemies[currentEnemy].Attack(mainCharacter);
+
+				std::cout
+					<< "After "
+					<< enemies[currentEnemy].getName()
+					<< "'s attack, you have "
+					<< mainCharacter.getRemainingHealthPoints()
+					<< " health points remaining."
+					<< std::endl;
+			}
+		}
+		else if (option == "2")
+		{
+			mainCharacter.Heal();
+
+			std::cout << "After healing:" << std::endl;
+			std::cout << mainCharacter;
+
+			if (currentEnemy < enemiesCount)
+			{
+				enemies[currentEnemy].Attack(mainCharacter);
+
+				std::cout
+					<< "After "
+					<< enemies[currentEnemy].getName()
+					<< "'s attack, you have "
+					<< mainCharacter.getRemainingHealthPoints()
+					<< " health points remaining."
+					<< std::endl;
+			}
+		}
+		else
+		{
+			std::cout << "Invalid option. Please try again." << std::endl;
+		}
+
+		std::cout << std::endl;
+	}
+
+	if (mainCharacter.isDead())
+	{
+		std::cout << "You lost. Game over." << std::endl;
+	}
+	else
+	{
+		std::cout << "You won! You defeated all enemies. GG!" << std::endl;
+	}
 }

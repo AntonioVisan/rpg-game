@@ -1,19 +1,28 @@
 #pragma once
+
 #include "../Character/Character.h"
+
+#include <memory>
+
 class Game
 {
 public:
 	static Game* getGame();
-	~Game();
+
+	~Game() = default;
+
 	void Initialize();
 	void Run();
+
 	Game(const Game&) = delete;
 	Game& operator=(const Game&) = delete;
+
 private:
 	Game() = default;
+
 	Character mainCharacter;
-	Character* enemies=nullptr;
-	static const int enemiesCount;
+	std::unique_ptr<Character[]> enemies;
+
+	static constexpr int enemiesCount = 15;
 	static Game* game;
-	void CheckIfEnemyDead(int&, int&);
 };

@@ -1,18 +1,21 @@
 #include "Game/Game.h"
+
+#include <iostream>
+#include <stdexcept>
+
 int main()
 {
 	try
 	{
-		
 		Game* game = Game::getGame();
 		game->Initialize();
 		game->Run();
-		delete game;
-		return 0;
 	}
-	catch (const char* mesaj)
+	catch (const std::exception& exception)
 	{
-		std::cerr << mesaj;
+		std::cerr << "Error: " << exception.what() << std::endl;
 		return 1;
 	}
+
+	return 0;
 }

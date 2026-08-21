@@ -1,36 +1,44 @@
 #pragma once
-#include <iostream>
+
+#include <iosfwd>
+#include <string>
+
 class Character
 {
 public:
-	void setName(std::string name);
+	Character();
+	Character(const std::string& name, int attackDamage, int healthPoints, int defence);
+
+	void setName(const std::string& name);
 	void setAttackDamage(int value);
 	void setDefence(int value);
 	void setHealthPoints(int value);
 	void setRemainingHealthPoints(int value);
-	inline int getAttackDamage() const;
-	inline int getDefence() const;
-	inline int getHealthPoints() const;
-	inline int getRemainingHealthPoints() const;
-	inline std::string getName() const
-	{
-		return name;
-	};
-	Character();
-	Character(std::string name, int attackDamage, int healthPoints, int defence);
+
+	const std::string& getName() const;
+	int getAttackDamage() const;
+	int getDefence() const;
+	int getHealthPoints() const;
+	int getRemainingHealthPoints() const;
+	int getLvl() const;
+	int getHealthPotionsCount() const;
+
 	void Heal();
 	void Attack(Character& enemy);
+
 	bool isAlive() const;
 	bool isDead() const;
+
 	void LvlUp();
-	friend std::istream& operator>>(std::istream& input, Character& caracter);
-	friend std::ostream& operator<<(std::ostream& output, const Character& caracter);
-	bool operator<(const Character& aux) const;
-	bool operator>(const Character& aux) const;
-	bool operator==(const Character& aux) const;
-	bool operator!=(const Character& aux) const;
-	Character operator++();
+
+	bool operator<(const Character& other) const;
+	bool operator>(const Character& other) const;
+	bool operator==(const Character& other) const;
+	bool operator!=(const Character& other) const;
+
+	Character& operator++();
 	Character operator++(int);
+
 private:
 	std::string name;
 	int lvl;
@@ -40,14 +48,18 @@ private:
 	int remainingHealthPoints;
 	int healthPotionsCount;
 
-	static const int baseAttackDamage;
-	static const int baseDefence;
-	static const int baseHealthPoints;
-	static const int maxAttackDamage;
-	static const int maxDefence;
-	static const int maxHealthPoints;
-	static const int startLvl;
-	static const int startHealthPotionsCount;
-	static const int healPotionRestorationEffect;
+	static constexpr int baseAttackDamage = 2;
+	static constexpr int baseDefence = 40;
+	static constexpr int baseHealthPoints = 35;
+
+	static constexpr int maxAttackDamage = 44;
+	static constexpr int maxDefence = 450;
+	static constexpr int maxHealthPoints = 300;
+
+	static constexpr int startLvl = 1;
+	static constexpr int startHealthPotionsCount = 4;
+	static constexpr int healPotionRestorationEffect = 30;
 };
 
+std::istream& operator>>(std::istream& input, Character& character);
+std::ostream& operator<<(std::ostream& output, const Character& character);

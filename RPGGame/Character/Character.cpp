@@ -1,25 +1,21 @@
 #include "Character.h"
-const int Character::baseAttackDamage = 2;
-const int Character::baseDefence = 40;
-const int Character::baseHealthPoints = 35;
-const int Character::maxAttackDamage = 44;
-const int Character::maxDefence = 450;
-const int Character::maxHealthPoints = 300;
-const int Character::startLvl = 1;
-const int Character::startHealthPotionsCount = 4;
-const int Character::healPotionRestorationEffect = 30;
 
-void Character::setName(std::string name)
+#include <algorithm>
+#include <iostream>
+
+void Character::setName(const std::string& name)
 {
 	this->name = name;
 }
+
 void Character::setAttackDamage(int value)
 {
 	if (value < baseAttackDamage)
 		attackDamage = baseAttackDamage;
 	else if (value > maxAttackDamage)
 		attackDamage = maxAttackDamage;
-	else attackDamage = value;
+	else
+		attackDamage = value;
 }
 
 void Character::setDefence(int value)
@@ -28,7 +24,8 @@ void Character::setDefence(int value)
 		defence = baseDefence;
 	else if (value > maxDefence)
 		defence = maxDefence;
-	else defence = value;
+	else
+		defence = value;
 }
 
 
@@ -38,72 +35,110 @@ void Character::setHealthPoints(int value)
 		healthPoints = baseHealthPoints;
 	else if (value > maxHealthPoints)
 		healthPoints = maxHealthPoints;
-	else healthPoints = value;
+	else
+		healthPoints = value;
 }
 
 void Character::setRemainingHealthPoints(int value)
 {
-	if (value > healthPoints)
+	if (value < 0)
+		remainingHealthPoints = 0;
+	else if (value > healthPoints)
 		remainingHealthPoints = healthPoints;
-	else remainingHealthPoints = value;
+	else
+		remainingHealthPoints = value;
 }
 
-inline int Character::getAttackDamage() const
+const std::string& Character::getName() const
+{
+	return name;
+}
+
+int Character::getAttackDamage() const
 {
 	return attackDamage;
 }
 
-inline int Character::getDefence() const
+int Character::getDefence() const
 {
 	return defence;
 }
 
-inline int Character::getHealthPoints() const
+int Character::getHealthPoints() const
 {
 	return healthPoints;
 }
 
-inline int Character::getRemainingHealthPoints() const
+int Character::getRemainingHealthPoints() const
 {
 	return remainingHealthPoints;
 }
 
-
-Character::Character()
+int Character::getLvl() const
 {
-	attackDamage = baseAttackDamage;
-	defence = baseDefence;
-	healthPoints = baseHealthPoints;
-	lvl = startLvl;
-	healthPotionsCount = startHealthPotionsCount;
-	remainingHealthPoints = healthPoints;
+	return lvl;
 }
 
-Character::Character(std::string name, int attackDamage, int healthPoints, int defence)
+int Character::getHealthPotionsCount() const
+{
+	return healthPotionsCount;
+}
+
+Character::Character()
+	: name(),
+	lvl(startLvl),
+	attackDamage(baseAttackDamage),
+	defence(baseDefence),
+	healthPoints(baseHealthPoints),
+	remainingHealthPoints(baseHealthPoints),
+	healthPotionsCount(startHealthPotionsCount)
+{}
+
+Character::Character(
+	const std::string& name,
+	int attackDamage,
+	int healthPoints,
+	int defence)
+	: name(),
+	lvl(startLvl),
+	attackDamage(baseAttackDamage),
+	defence(baseDefence),
+	healthPoints(baseHealthPoints),
+	remainingHealthPoints(baseHealthPoints),
+	healthPotionsCount(startHealthPotionsCount)
 {
 	setName(name);
 	setAttackDamage(attackDamage);
 	setHealthPoints(healthPoints);
 	setDefence(defence);
-	lvl = startLvl;
-	healthPotionsCount = startHealthPotionsCount;
-	remainingHealthPoints = this->healthPoints;
 }
 
 void Character::Heal()
 {
 	if (healthPotionsCount > 0)
 	{
-		setRemainingHealthPoints(getRemainingHealthPoints() + healPotionRestorationEffect);
+		setRemainingHealthPoints(
+			getRemainingHealthPoints() + healPotionRestorationEffect
+		);
 		healthPotionsCount--;
 	}
-	else std::cout << "Nu mai ai potiuni. " << std::endl;
+	else
+	{
+		std::cout << "No health potions remaining." << std::endl;
+	}
 }
 
 void Character::Attack(Character& enemy)
 {
-	int damageDealt = attackDamage * std::min((double)enemy.healthPoints / enemy.defence, 1.0);
-	enemy.setRemainingHealthPoints(enemy.remainingHealthPoints - damageDealt);
+	int damageDealt =
+		attackDamage * std::min(
+			static_cast<double>(enemy.healthPoints) / enemy.defence,
+			1.0
+		);
+
+	enemy.setRemainingHealthPoints(
+		enemy.remainingHealthPoints - damageDealt
+	);
 }
 
 bool Character::isAlive() const
@@ -113,7 +148,7 @@ bool Character::isAlive() const
 
 bool Character::isDead() const
 {
-	return remainingHealthPoints<=0;
+	return remainingHealthPoints <= 0;
 }
 
 void Character::LvlUp()
@@ -125,27 +160,31 @@ void Character::LvlUp()
 	setRemainingHealthPoints(healthPoints);
 }
 
-bool Character::operator<(const Character& aux) const
+bool Character::operator<(const Character& other) const
 {
-	return (healthPoints * attackDamage * defence) < (aux.healthPoints * aux.attackDamage * aux.defence);
+	return (healthPoints * attackDamage * defence)
+		< (other.healthPoints * other.attackDamage * other.defence);
 }
 
-bool Character::operator>(const Character& aux) const
+bool Character::operator>(const Character& other) const
 {
-	return (healthPoints * attackDamage * defence) > (aux.healthPoints * aux.attackDamage * aux.defence);
+	return (healthPoints * attackDamage * defence)
+> (other.healthPoints * other.attackDamage * other.defence);
 }
 
-bool Character::operator==(const Character& aux) const
+bool Character::operator==(const Character& other) const
 {
-	return (healthPoints * attackDamage * defence) == (aux.healthPoints * aux.attackDamage * aux.defence);
+	return (healthPoints * attackDamage * defence)
+		== (other.healthPoints * other.attackDamage * other.defence);
 }
 
-bool Character::operator!=(const Character& aux) const
+bool Character::operator!=(const Character& other) const
 {
-	return (healthPoints * attackDamage * defence) != (aux.healthPoints * aux.attackDamage * aux.defence);
+	return (healthPoints * attackDamage * defence)
+		!= (other.healthPoints * other.attackDamage * other.defence);
 }
 
-Character Character::operator++()
+Character& Character::operator++()
 {
 	LvlUp();
 	return *this;
@@ -158,29 +197,38 @@ Character Character::operator++(int)
 	return temp;
 }
 
-std::istream& operator>>(std::istream& input, Character& caracter)
+std::istream& operator>>(std::istream& input, Character& character)
 {
 	std::string name;
-	int attackDamage, healthPoints, defence;
+	int attackDamage;
+	int healthPoints;
+	int defence;
+
 	input >> name >> attackDamage >> healthPoints >> defence;
-	caracter.setName(name);
-	caracter.setAttackDamage(attackDamage);
-	caracter.setDefence(defence);
-	caracter.setHealthPoints(healthPoints);
-	caracter.setRemainingHealthPoints(healthPoints);
+
+	character.setName(name);
+	character.setAttackDamage(attackDamage);
+	character.setDefence(defence);
+	character.setHealthPoints(healthPoints);
+	character.setRemainingHealthPoints(healthPoints);
+
 	return input;
 }
 
-std::ostream& operator<<(std::ostream& output, const Character& caracter)
+std::ostream& operator<<(std::ostream& output, const Character& character)
 {
-	output << "Caracterul " << caracter.name << " are urmatoarele statistici: " << std::endl;
-	output << "Level: " << caracter.lvl << std::endl;
-	output << "Attack Damage: " << caracter.attackDamage << std::endl;
-	output << "Defence: " << caracter.defence << std::endl;
-	output << "Health Points: " << caracter.healthPoints << std::endl;
-	output << "Remaining Health Points: " << caracter.remainingHealthPoints << std::endl;
-	output << "Health Potions: " << caracter.healthPotionsCount << std::endl;
+	output << "Character " << character.getName()
+		<< " has the following statistics:" << std::endl;
+	output << "Level: " << character.getLvl() << std::endl;
+	output << "Attack Damage: " << character.getAttackDamage() << std::endl;
+	output << "Defence: " << character.getDefence() << std::endl;
+	output << "Health Points: " << character.getHealthPoints() << std::endl;
+	output << "Remaining Health Points: "
+		<< character.getRemainingHealthPoints() << std::endl;
+	output << "Health Potions: "
+		<< character.getHealthPotionsCount() << std::endl;
 	output << std::endl;
+
 	return output;
 }
 
